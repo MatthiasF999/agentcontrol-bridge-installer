@@ -15,25 +15,25 @@ GH-hosted runners. Wizard logic lands in Phase 55.2.1.
 See `agentcontrol-supabase/docs/PHASE-55-SUMMARY.md` for the full
 phase plan.
 
-## What the installer does (Phase 55.2.1 target)
+## What the installer does
 
-1. **Welcome** — list of steps, admin-rights check
-2. **WSL2** — detect; if missing run `wsl --install` (admin elevation + reboot handling)
-3. **Ubuntu** — detect; if missing install Ubuntu-22.04
-4. **Configuration** — form: git name, git email, optional pairing tokens (refresh token + bridge ID + org ID)
-5. **System dependencies** — `apt install -y build-essential git curl python3`
-6. **Git config** — `git config --global user.{name,email}` from form values
-7. **Node.js 22** — NodeSource setup
-8. **Claude Code CLI** — `npm install -g @anthropic-ai/claude-code`
-9. **Bridge source** — download tarball from the bridge repo
-10. **npm install** — install bridge dependencies (with progress)
-11. **Build bridge** — `npm run build` (compile TypeScript to `dist/`)
-12. **Generate `.env`** — auto-gen 64-char hex `API_KEY`
-13. **Claude OAuth** — opens browser to `claude.ai`; polls for credentials
-14. **Pair bridge** — uses pairing tokens if provided, otherwise opens operator-portal
-15. **Done** — bridge running under a systemd-user service; shows the
-    `API_KEY` (needed for first AgentControl app sign-in) and link to
-    the AgentControl mobile + tray downloads
+Four user-visible screens. The bulk of the work — 11 automated
+sub-tasks — runs without interaction inside the **Installing** screen.
+
+1. **Setup** — one form: git name, git email, and optional pairing
+   tokens (refresh token + bridge ID + org ID). "Start installation".
+2. **Installing** — runs 11 sub-tasks sequentially with a live log and
+   progress bar; auto-advances when finished, Retry on error:
+   WSL2 → Ubuntu 22.04 → system dependencies → git config →
+   Node.js 22 → Claude Code CLI → bridge source → npm install →
+   build bridge (`npm run build`) → generate `.env` (64-char `API_KEY`)
+   → systemd-user service. If pairing tokens were given, pairing runs
+   as the final sub-task.
+3. **Sign in to Claude Code** — opens the browser for OAuth; polls for
+   credentials and auto-advances once detected.
+4. **Done** — shows the `API_KEY` (needed for first AgentControl app
+   sign-in), pairing status (or an inline pair form if deferred), and
+   links to the operator portal + AgentControl app download.
 
 ## What the installer does NOT do
 
