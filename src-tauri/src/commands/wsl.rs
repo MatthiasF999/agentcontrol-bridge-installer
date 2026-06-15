@@ -2,7 +2,11 @@ use super::shell::{run_wsl_host, CommandResult};
 use serde::Serialize;
 use std::process::Command;
 
+// camelCase rename so JS can read `wsl.defaultDistro` directly. Without this,
+// the property is `undefined` on the JS side and the v0.0.5 detect-existing
+// logic silently misses a configured default distro.
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WslStatus {
     pub installed: bool,
     pub default_distro: Option<String>,

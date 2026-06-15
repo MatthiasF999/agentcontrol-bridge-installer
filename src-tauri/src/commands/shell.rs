@@ -4,12 +4,19 @@ use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
+// Both structs need `rename_all = "camelCase"` — Tauri's IPC layer hands the
+// serialized JSON straight to JS, which expects camelCase keys (`exitCode`,
+// not `exit_code`). Without the rename, `result.exitCode` is `undefined`,
+// which surfaces as "Command exited with code undefined" the moment any
+// `expectOk`-wrapped step actually reaches the exit-code check.
 #[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CommandResult {
     pub exit_code: i32,
 }
 
 #[derive(Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 struct OutputLine {
     stream: String,
     line: String,

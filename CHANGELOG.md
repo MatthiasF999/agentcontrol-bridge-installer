@@ -9,6 +9,13 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- Phase 55.2.6 — `CommandResult` and `WslStatus` structs now serialize as
+  camelCase (`exitCode`, `defaultDistro`). The TS side has always read those
+  field names, but the Rust structs emitted snake_case (`exit_code`,
+  `default_distro`), so `result.exitCode` came across as `undefined`. The
+  bug stayed latent until v0.0.6's root-fix actually let the pipeline reach
+  an `expectOk`-guarded step (`apt-get` succeeded with exit 0, but the
+  installer threw "Command exited with code undefined" anyway).
 - Phase 55.2.5 — `System dependencies`, `Node.js 22` and `Claude Code CLI`
   steps no longer hang silently on a hidden sudo password prompt. They now
   run under `wsl -u root` so `sudo` (and its `/dev/tty` password prompt) is
