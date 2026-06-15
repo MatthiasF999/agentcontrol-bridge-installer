@@ -1,5 +1,5 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
 
 // Tauri-aware Vite config — mirrors the agentcontrol-tray pattern.
 // Fixed port 1420 so `tauri dev`/`tauri build` can wait for the dev

@@ -14,5 +14,7 @@
       "suspicious": { "noExplicitAny": "error" }
     }
   },
-  "javascript": { "formatter": { "quoteStyle": "double", "semicolons": "always" } }
+  "javascript": {
+    "formatter": { "quoteStyle": "double", "semicolons": "always" }
+  }
 }
