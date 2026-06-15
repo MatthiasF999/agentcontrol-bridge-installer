@@ -87,6 +87,13 @@ export function npmInstallBridge(
   return invoke<CommandResult>("npm_install_bridge", { distro, eventId });
 }
 
+export function npmRunBuildBridge(
+  distro: string,
+  eventId: string,
+): Promise<CommandResult> {
+  return invoke<CommandResult>("npm_run_build_bridge", { distro, eventId });
+}
+
 export function generateApiKey(): Promise<string> {
   return invoke<string>("generate_api_key");
 }
@@ -113,10 +120,11 @@ export function openOperatorPortal(): Promise<null> {
 
 export function pairBridge(
   distro: string,
-  claimCode: string,
-  eventId: string,
-): Promise<CommandResult> {
-  return invoke<CommandResult>("pair_bridge", { distro, claimCode, eventId });
+  refreshToken: string,
+  bridgeId: string,
+  orgId: string,
+): Promise<void> {
+  return invoke<void>("pair_bridge", { distro, refreshToken, bridgeId, orgId });
 }
 
 export function installSystemdService(

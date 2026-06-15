@@ -10,6 +10,7 @@ import {
   type StepKey,
   type StepProps,
 } from "./state";
+import { BridgeBuild } from "./steps/BridgeBuild";
 import { BridgeSource } from "./steps/BridgeSource";
 import { ClaudeCli } from "./steps/ClaudeCli";
 import { ClaudeOauth } from "./steps/ClaudeOauth";
@@ -39,6 +40,7 @@ const STEP_COMPONENTS: Record<
   claude: ClaudeCli,
   source: BridgeSource,
   npm: NpmInstall,
+  build: BridgeBuild,
   env: EnvGen,
   oauth: ClaudeOauth,
   pair: Pair,

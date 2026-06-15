@@ -20,17 +20,18 @@ phase plan.
 1. **Welcome** — list of steps, admin-rights check
 2. **WSL2** — detect; if missing run `wsl --install` (admin elevation + reboot handling)
 3. **Ubuntu** — detect; if missing install Ubuntu-22.04
-4. **Configuration** — form: git name, git email, optional org claim-code
+4. **Configuration** — form: git name, git email, optional pairing tokens (refresh token + bridge ID + org ID)
 5. **System dependencies** — `apt install -y build-essential git curl python3`
 6. **Git config** — `git config --global user.{name,email}` from form values
 7. **Node.js 22** — NodeSource setup
 8. **Claude Code CLI** — `npm install -g @anthropic-ai/claude-code`
 9. **Bridge source** — download tarball from the bridge repo
 10. **npm install** — install bridge dependencies (with progress)
-11. **Generate `.env`** — auto-gen 64-char hex `API_KEY`
-12. **Claude OAuth** — opens browser to `claude.ai`; polls for credentials
-13. **Pair bridge** — uses claim-code if provided, otherwise opens operator-portal
-14. **Done** — bridge running under a systemd-user service; shows the
+11. **Build bridge** — `npm run build` (compile TypeScript to `dist/`)
+12. **Generate `.env`** — auto-gen 64-char hex `API_KEY`
+13. **Claude OAuth** — opens browser to `claude.ai`; polls for credentials
+14. **Pair bridge** — uses pairing tokens if provided, otherwise opens operator-portal
+15. **Done** — bridge running under a systemd-user service; shows the
     `API_KEY` (needed for first AgentControl app sign-in) and link to
     the AgentControl mobile + tray downloads
 

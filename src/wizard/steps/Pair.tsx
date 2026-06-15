@@ -9,31 +9,34 @@ import { useStepRunner } from "../useStepRunner";
 export function Pair({ state, dispatch, onNext, onBack }: StepProps) {
   const status = state.stepStatus.pair;
   const { distro, formData } = state;
+  const { refreshToken, bridgeId, orgId } = formData;
   const runner = useStepRunner("pair", dispatch);
   const started = useRef(false);
 
-  const run = useCallback(
-    (code: string) => {
-      void runner(async (eventId) => {
-        const paired = await pairBridge(distro, code, eventId);
-        if (paired.exitCode !== 0) {
-          return paired;
-        }
-        return installSystemdService(distro, eventId);
-      });
-    },
-    [runner, distro],
-  );
+  const hasTokens =
+    refreshToken.trim().length > 0 &&
+    bridgeId.trim().length > 0 &&
+    orgId.trim().length > 0;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: auto-pair once if a claim code was provided
+  const run = useCallback(() => {
+    void runner(async (eventId) => {
+      await pairBridge(
+        distro,
+        refreshToken.trim(),
+        bridgeId.trim(),
+        orgId.trim(),
+      );
+      return installSystemdService(distro, eventId);
+    });
+  }, [runner, distro, refreshToken, bridgeId, orgId]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: auto-pair once if all tokens were provided
   useEffect(() => {
-    if (!started.current && status === "pending" && formData.claimCode.trim()) {
+    if (!started.current && status === "pending" && hasTokens) {
       started.current = true;
-      run(formData.claimCode.trim());
+      run();
     }
   }, []);
-
-  const hasCode = formData.claimCode.trim().length > 0;
 
   return (
     <StepFrame
@@ -43,31 +46,43 @@ export function Pair({ state, dispatch, onNext, onBack }: StepProps) {
       error={state.errors.pair}
       onBack={onBack}
       onNext={onNext}
-      onRetry={() => run(formData.claimCode.trim())}
+      onRetry={run}
       nextDisabled={status !== "done"}
     >
-      {!hasCode ? (
+      {status !== "done" ? (
         <>
           <p>
-            Open the operator portal to generate a claim code, then paste it
-            below.
+            Open the operator portal → "Pair new bridge" to get these tokens.
           </p>
           <button type="button" onClick={() => void openOperatorPortal()}>
             Open operator portal
           </button>
           <InputField
-            label="Claim code"
-            value={formData.claimCode}
-            placeholder="Paste claim code"
+            label="Refresh token"
+            value={refreshToken}
             onChange={(v) =>
-              dispatch({ type: "UPDATE_FORM", data: { claimCode: v } })
+              dispatch({ type: "UPDATE_FORM", data: { refreshToken: v } })
+            }
+          />
+          <InputField
+            label="Bridge ID"
+            value={bridgeId}
+            onChange={(v) =>
+              dispatch({ type: "UPDATE_FORM", data: { bridgeId: v } })
+            }
+          />
+          <InputField
+            label="Org ID"
+            value={orgId}
+            onChange={(v) =>
+              dispatch({ type: "UPDATE_FORM", data: { orgId: v } })
             }
           />
           <button
             type="button"
             className="btn-primary"
-            disabled={!hasCode || status === "running"}
-            onClick={() => run(formData.claimCode.trim())}
+            disabled={!hasTokens || status === "running"}
+            onClick={run}
           >
             Pair bridge
           </button>

@@ -11,6 +11,7 @@ export type StepKey =
   | "claude"
   | "source"
   | "npm"
+  | "build"
   | "env"
   | "oauth"
   | "pair"
@@ -21,7 +22,9 @@ export type StepStatus = "pending" | "running" | "done" | "error" | "skipped";
 export type FormData = {
   gitName: string;
   gitEmail: string;
-  claimCode: string;
+  refreshToken: string;
+  bridgeId: string;
+  orgId: string;
 };
 
 export type WizardState = {
@@ -54,6 +57,7 @@ export const STEP_ORDER: readonly StepKey[] = [
   "claude",
   "source",
   "npm",
+  "build",
   "env",
   "oauth",
   "pair",
@@ -72,7 +76,7 @@ export const STEP_META: Record<
   ubuntu: { title: "Ubuntu", description: "Install Ubuntu 22.04 if missing" },
   config: {
     title: "Configuration",
-    description: "Git name, email, optional claim code",
+    description: "Git name, email, optional pairing tokens",
   },
   deps: {
     title: "System dependencies",
@@ -95,6 +99,10 @@ export const STEP_META: Record<
     description: "Download the bridge tarball",
   },
   npm: { title: "npm install", description: "Install bridge npm dependencies" },
+  build: {
+    title: "Build bridge",
+    description: "Compile TypeScript to dist/ (npm run build)",
+  },
   env: {
     title: "Generate .env",
     description: "Auto-generate a 64-char API_KEY",
@@ -142,7 +150,13 @@ export const initialState: WizardState = {
   stepStatus: initialStatus(),
   stepLogs: initialLogs(),
   errors: initialErrors(),
-  formData: { gitName: "", gitEmail: "", claimCode: "" },
+  formData: {
+    gitName: "",
+    gitEmail: "",
+    refreshToken: "",
+    bridgeId: "",
+    orgId: "",
+  },
   distro: "Ubuntu-22.04",
   apiKey: "",
 };
