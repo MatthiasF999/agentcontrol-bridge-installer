@@ -116,7 +116,7 @@ body { margin: 0; }
   cursor: not-allowed;
 }
 
-.btn-primary {
+button.btn-primary {
   background: var(--accent);
   color: white;
   border-color: var(--accent);
