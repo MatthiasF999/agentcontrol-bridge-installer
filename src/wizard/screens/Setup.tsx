@@ -1,30 +1,23 @@
 import { InputField } from "../components/InputField";
-import { StepFrame } from "../components/StepFrame";
-import { STEP_META, type StepProps } from "../state";
+import type { ScreenProps } from "../state";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function Configuration({ state, dispatch, onNext, onBack }: StepProps) {
+export function Setup({ state, dispatch }: ScreenProps) {
   const { gitName, gitEmail, refreshToken, bridgeId, orgId } = state.formData;
   const emailValid = EMAIL_RE.test(gitEmail);
-  const nameValid = gitName.trim().length > 0;
-  const valid = nameValid && emailValid;
-
-  const handleNext = () => {
-    dispatch({ type: "SET_STATUS", step: "config", status: "done" });
-    onNext();
-  };
+  const canStart = gitName.trim().length > 0 && emailValid;
 
   return (
-    <StepFrame
-      title={STEP_META.config.title}
-      description={STEP_META.config.description}
-      status={state.stepStatus.config}
-      onBack={onBack}
-      onNext={handleNext}
-      nextLabel="Continue"
-      nextDisabled={!valid}
-    >
+    <section className="screen">
+      <h1>Set up AgentControl Bridge</h1>
+      <p className="screen-intro">
+        This installs the bridge inside WSL2 + Ubuntu and configures everything
+        needed to run autonomous agents. Some steps may prompt for admin
+        elevation. It takes a few minutes — you can watch progress on the next
+        screen.
+      </p>
+
       <InputField
         label="Git user name"
         value={gitName}
@@ -49,14 +42,15 @@ export function Configuration({ state, dispatch, onNext, onBack }: StepProps) {
           dispatch({ type: "UPDATE_FORM", data: { gitEmail: v } })
         }
       />
-      <p className="step-intro">
-        Pairing tokens (from operator portal → Pair new bridge). Fill all three
-        to auto-pair, or leave blank to pair later in step 14.
+
+      <p className="screen-section">
+        Pairing tokens (optional — from operator portal → "Pair new bridge").
+        Fill all three to pair automatically, or leave blank to pair at the end.
       </p>
       <InputField
         label="Refresh token"
         value={refreshToken}
-        placeholder="Optional — paste from operator portal"
+        placeholder="Optional"
         onChange={(v) =>
           dispatch({ type: "UPDATE_FORM", data: { refreshToken: v } })
         }
@@ -75,6 +69,17 @@ export function Configuration({ state, dispatch, onNext, onBack }: StepProps) {
         placeholder="Optional"
         onChange={(v) => dispatch({ type: "UPDATE_FORM", data: { orgId: v } })}
       />
-    </StepFrame>
+
+      <footer className="actions">
+        <button
+          type="button"
+          className="btn-primary"
+          disabled={!canStart}
+          onClick={() => dispatch({ type: "SCREEN", screen: "installing" })}
+        >
+          Start installation
+        </button>
+      </footer>
+    </section>
   );
 }

@@ -16,9 +16,18 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Collapsed the 15 step screens to 4 user-visible screens (Setup →
+  Installing → Sign in to Claude Code → Done); the 11 non-interactive
+  sub-tasks now run automatically inside the Installing screen with a
+  single progress bar and live log.
 - Pairing now uses three tokens (refresh token + bridge ID + org ID)
   from the operator portal "Pair new bridge" flow instead of a single
   claim code; `pair_bridge` no longer streams output.
+
+### Fixed
+
+- Primary buttons rendered white-on-white (invisible text): `.actions
+  button` outspecified `.btn-primary`. Bumped to `button.btn-primary`.
 
 ## [0.0.1] — 2026-06-15
 
