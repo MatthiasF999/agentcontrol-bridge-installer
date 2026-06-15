@@ -140,11 +140,10 @@ jobs:
           prerelease: true
           args: ${{ matrix.args }}
 
-      # Portable Windows .exe: tauri-action only ships the NSIS bundle (which
-      # writes itself to Program Files first). Some users want the raw exe
-      # they can double-click and have the wizard run immediately — no
-      # install step, no Start Menu shortcut to clean up afterwards. Upload
-      # the raw Tauri build output as a release asset alongside the bundle.
+      # Portable Windows .exe: tauri-action with --no-bundle only compiles
+      # the raw exe but doesn't ship it. Upload it as a release asset so
+      # users double-click and the wizard runs immediately (no install
+      # step, no Start Menu shortcut to clean up).
       - name: Upload portable Windows .exe
         if: matrix.platform == 'windows-latest' && github.event_name == 'push'
         shell: bash
@@ -155,4 +154,22 @@ jobs:
           SRC="src-tauri/target/release/agentcontrol-bridge-installer.exe"
           DEST="AgentControl-Bridge-Installer_${VERSION}_x64-portable.exe"
           cp "$SRC" "$DEST"
+          gh release upload "$GITHUB_REF_NAME" "$DEST" --clobber
+
+      # Portable macOS .app: ship the raw bundle inside a .zip instead of a
+      # .dmg, so users skip the disk-image-mount + drag-to-Applications
+      # round-trip. They double-click the .zip → macOS auto-unzips it →
+      # double-click the .app → wizard runs.
+      - name: Upload portable macOS .app.zip
+        if: matrix.platform == 'macos-14' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          APP_DIR="src-tauri/target/aarch64-apple-darwin/release/bundle/macos/AgentControl Bridge Installer.app"
+          DEST="AgentControl-Bridge-Installer_${VERSION}_aarch64-portable.app.zip"
+          # `ditto -c -k --keepParent` preserves the .app's HFS+ metadata +
+          # symlinks, which a plain `zip -r` would mangle.
+          ditto -c -k --keepParent "$APP_DIR" "$DEST"
           gh release upload "$GITHUB_REF_NAME" "$DEST" --clobber

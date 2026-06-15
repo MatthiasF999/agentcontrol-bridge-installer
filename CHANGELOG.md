@@ -9,6 +9,12 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Phase 55.2.14 — macOS + Linux now also ship as single portable
+  artifacts. Drops `dmg` + `deb` from `bundle.targets` (keeps `app` +
+  `appimage`). macOS users get `*_aarch64-portable.app.zip` — unzip +
+  double-click the `.app`, no disk-image-mount + drag-to-Applications.
+  Linux users get just the `.AppImage` (already portable). Each
+  platform now has exactly one download.
 - Phase 55.2.13 — Windows ships as a single **portable .exe** instead of
   an NSIS installer + Start Menu round-trip. Double-click the
   `_x64-portable.exe` and the wizard starts immediately; nothing is
