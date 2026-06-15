@@ -7,6 +7,17 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Phase 55.2.12 — pair-bridge URL switched from the deprecated
+  operator-portal `/pair-installer` route to the agentcontrol-app web
+  build at `/app/pair-bridge`. The Caddy route + the page itself now
+  live with the rest of the end-user surface instead of mixed into the
+  admin UI. The deep-link contract
+  (`agentcontrol-bridge-installer://pair?refresh_token=...&bridge_id=...&org_id=...&lan_api_key=...`)
+  is unchanged, so already-installed v0.0.12 clients keep working until
+  they upgrade.
+
 ### Fixed
 
 - Phase 55.2.11 — `Sign in` step no longer says "no claim code found in

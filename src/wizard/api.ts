@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import { openUrl } from "@tauri-apps/plugin-opener";
 
-const PAIR_INSTALLER_URL = "https://178.105.244.59/pair-installer";
+const PAIR_INSTALLER_URL = "https://178.105.244.59/app/pair-bridge";
 
 export type PairTokens = {
   refresh_token: string;

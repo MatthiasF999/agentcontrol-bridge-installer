@@ -1,7 +1,7 @@
 {
   "name": "agentcontrol-bridge-installer",
   "private": true,
-  "version": "0.0.12",
+  "version": "0.0.13",
   "type": "module",
   "description": "Tauri-based installer wizard for the AgentControl Bridge — handles WSL2/Ubuntu setup, Claude Code CLI, git config and bridge pairing in one signed installer.",
   "scripts": {
