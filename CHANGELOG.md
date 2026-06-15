@@ -16,6 +16,12 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Phase 55.2.3 — Setup screen now uses a deep-link "Sign in to
+  AgentControl" button instead of three paste-in pairing-token fields.
+  Sign-in opens the operator portal and captures tokens via the
+  `agentcontrol-bridge-installer://pair` URL scheme (new
+  `tauri-plugin-deep-link`), emitting a `pair-tokens-received` event the
+  wizard listens for. Manual paste-in pairing still available on Done.
 - Collapsed the 15 step screens to 4 user-visible screens (Setup →
   Installing → Sign in to Claude Code → Done); the 11 non-interactive
   sub-tasks now run automatically inside the Installing screen with a

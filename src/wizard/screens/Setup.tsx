@@ -1,12 +1,35 @@
+import { useEffect } from "react";
+import {
+  listenForPairTokens,
+  openPairInstallerSignIn,
+  type PairTokens,
+} from "../api";
 import { InputField } from "../components/InputField";
 import type { ScreenProps } from "../state";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function Setup({ state, dispatch }: ScreenProps) {
-  const { gitName, gitEmail, refreshToken, bridgeId, orgId } = state.formData;
+  const { gitName, gitEmail, refreshToken } = state.formData;
   const emailValid = EMAIL_RE.test(gitEmail);
   const canStart = gitName.trim().length > 0 && emailValid;
+  const signedIn = refreshToken.length > 0;
+
+  useEffect(() => {
+    const unlisten = listenForPairTokens((tokens: PairTokens) => {
+      dispatch({
+        type: "UPDATE_FORM",
+        data: {
+          refreshToken: tokens.refresh_token,
+          bridgeId: tokens.bridge_id,
+          orgId: tokens.org_id,
+        },
+      });
+    });
+    return () => {
+      void unlisten.then((fn) => fn());
+    };
+  }, [dispatch]);
 
   return (
     <section className="screen">
@@ -43,32 +66,21 @@ export function Setup({ state, dispatch }: ScreenProps) {
         }
       />
 
-      <p className="screen-section">
-        Pairing tokens (optional — from operator portal → "Pair new bridge").
-        Fill all three to pair automatically, or leave blank to pair at the end.
-      </p>
-      <InputField
-        label="Refresh token"
-        value={refreshToken}
-        placeholder="Optional"
-        onChange={(v) =>
-          dispatch({ type: "UPDATE_FORM", data: { refreshToken: v } })
-        }
-      />
-      <InputField
-        label="Bridge ID"
-        value={bridgeId}
-        placeholder="Optional"
-        onChange={(v) =>
-          dispatch({ type: "UPDATE_FORM", data: { bridgeId: v } })
-        }
-      />
-      <InputField
-        label="Org ID"
-        value={orgId}
-        placeholder="Optional"
-        onChange={(v) => dispatch({ type: "UPDATE_FORM", data: { orgId: v } })}
-      />
+      <p className="screen-section">AgentControl account</p>
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={() => void openPairInstallerSignIn()}
+      >
+        Sign in to AgentControl
+      </button>
+      {signedIn ? (
+        <p className="step-ok">✓ Signed in. Click Start to install.</p>
+      ) : (
+        <p className="step-hint">
+          Optional — sign in now to auto-pair, or skip and pair manually later.
+        </p>
+      )}
 
       <footer className="actions">
         <button

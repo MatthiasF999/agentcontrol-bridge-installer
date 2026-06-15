@@ -20,8 +20,13 @@ phase plan.
 Four user-visible screens. The bulk of the work — 11 automated
 sub-tasks — runs without interaction inside the **Installing** screen.
 
-1. **Setup** — one form: git name, git email, and optional pairing
-   tokens (refresh token + bridge ID + org ID). "Start installation".
+1. **Setup** — git name, git email, and a **"Sign in to AgentControl"**
+   button. Sign-in opens the operator portal `/pair-installer` page in
+   the browser; after authenticating it redirects to the
+   `agentcontrol-bridge-installer://pair?refresh_token=…&bridge_id=…&org_id=…`
+   deep link, which the installer captures to auto-pair. Sign-in is
+   optional — skip it and pair manually on the Done screen later.
+   "Start installation".
 2. **Installing** — runs 11 sub-tasks sequentially with a live log and
    progress bar; auto-advances when finished, Retry on error:
    WSL2 → Ubuntu 22.04 → system dependencies → git config →

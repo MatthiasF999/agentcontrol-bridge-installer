@@ -1,5 +1,26 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { openUrl } from "@tauri-apps/plugin-opener";
+
+const PAIR_INSTALLER_URL = "https://178.105.244.59/pair-installer";
+
+export type PairTokens = {
+  refresh_token: string;
+  bridge_id: string;
+  org_id: string;
+};
+
+export function openPairInstallerSignIn(): Promise<void> {
+  return openUrl(PAIR_INSTALLER_URL);
+}
+
+export function listenForPairTokens(
+  handler: (tokens: PairTokens) => void,
+): Promise<UnlistenFn> {
+  return listen<PairTokens>("pair-tokens-received", (event) => {
+    handler(event.payload);
+  });
+}
 
 export type WslStatus = {
   installed: boolean;

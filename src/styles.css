@@ -132,6 +132,11 @@ button.btn-primary {
   color: #15803d;
   margin: 0;
 }
+.step-hint {
+  color: #64748b;
+  font-size: 13px;
+  margin: 0;
+}
 .step-error-banner {
   background: #fee2e2;
   border: 1px solid #fca5a5;
