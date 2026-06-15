@@ -7,6 +7,15 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- Phase 55.2.4 — Ubuntu-detection no longer exact-matches `"Ubuntu-22.04"`.
+  The installer now reuses whatever WSL distro is already present (preferring
+  the WSL default if one is set) instead of installing a second Ubuntu
+  alongside the user's own `Ubuntu` / `Ubuntu-24.04` / Debian / etc.
+  Only when WSL has zero distros registered does the installer fall back to
+  `wsl --install -d Ubuntu-22.04`.
+
 ### Added
 
 - Phase 55.2.1 — real 15-step wizard frontend driven by the Tauri

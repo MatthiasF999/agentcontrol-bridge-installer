@@ -25,6 +25,11 @@ export function Installing({ state, dispatch }: ScreenProps) {
     async (startIdx: number) => {
       if (runningRef.current) return;
       runningRef.current = true;
+      // Track distro locally — `ubuntu_install` may resolve to an existing
+      // distro (e.g. user's "Ubuntu") rather than the seed value. Subsequent
+      // steps must target that name, but the captured `distro` closure is
+      // stale until React re-renders, so thread the resolved name through here.
+      let currentDistro = distro;
       try {
         for (let i = startIdx; i < AUTO_STEPS.length; i++) {
           const step = AUTO_STEPS[i];
@@ -39,7 +44,15 @@ export function Installing({ state, dispatch }: ScreenProps) {
               )
             : null;
           try {
-            await executeStep(step, distro, formData, dispatch);
+            const result = await executeStep(
+              step,
+              currentDistro,
+              formData,
+              dispatch,
+            );
+            if (typeof result === "string") {
+              currentDistro = result;
+            }
             dispatch({ type: "STEP_DONE", step });
           } catch (e) {
             dispatch({

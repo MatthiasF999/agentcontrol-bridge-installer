@@ -50,8 +50,8 @@ export function installWsl(): Promise<null> {
   return invoke<null>("install_wsl");
 }
 
-export function detectUbuntu(distro: string): Promise<boolean> {
-  return invoke<boolean>("detect_ubuntu", { distro });
+export function detectUbuntu(): Promise<string | null> {
+  return invoke<string | null>("detect_ubuntu");
 }
 
 export function installUbuntu(): Promise<null> {

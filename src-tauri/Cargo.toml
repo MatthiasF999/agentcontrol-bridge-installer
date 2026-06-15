@@ -1,6 +1,6 @@
 [package]
 name = "agentcontrol-bridge-installer"
-version = "0.0.4"
+version = "0.0.5"
 description = "AgentControl Bridge installer wizard — Tauri 2.x app."
 authors = ["AgentControl"]
 edition = "2021"

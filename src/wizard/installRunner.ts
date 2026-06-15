@@ -35,19 +35,22 @@ export const STREAMING_STEPS: ReadonlySet<AutoStep> = new Set<AutoStep>([
   "systemd",
 ]);
 
-async function expectOk(promise: Promise<CommandResult>): Promise<void> {
+async function expectOk(promise: Promise<CommandResult>): Promise<undefined> {
   const result = await promise;
   if (result.exitCode !== 0) {
     throw new Error(`Command exited with code ${result.exitCode}`);
   }
+  return undefined;
 }
 
+// Only `ubuntu_install` returns a string (the resolved distro name) for the
+// runner to thread into later steps; every other case resolves to `undefined`.
 export async function executeStep(
   step: AutoStep,
   distro: string,
   form: FormData,
   dispatch: Dispatch<Action>,
-): Promise<void> {
+): Promise<string | undefined> {
   switch (step) {
     case "wsl_install": {
       const wsl = await detectWsl();
@@ -57,11 +60,16 @@ export async function executeStep(
       return;
     }
     case "ubuntu_install": {
-      if (!(await detectUbuntu(distro))) {
+      // Reuse an existing distro if one is present (default-wins). Only run
+      // `wsl --install -d Ubuntu-22.04` when no distro is registered at all,
+      // so we never add a second Ubuntu alongside the user's own.
+      const existing = await detectUbuntu();
+      const actual = existing ?? "Ubuntu-22.04";
+      if (!existing) {
         await installUbuntu();
       }
-      dispatch({ type: "SET_DISTRO", distro });
-      return;
+      dispatch({ type: "SET_DISTRO", distro: actual });
+      return actual;
     }
     case "deps":
       return expectOk(aptInstallDeps(distro, step));
