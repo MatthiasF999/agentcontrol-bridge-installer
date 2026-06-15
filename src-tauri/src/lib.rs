@@ -36,6 +36,7 @@ pub fn run() {
             commands::deps::install_node22,
             commands::deps::install_claude_cli,
             commands::git_cfg::configure_git,
+            commands::git_cfg::read_git_config,
             commands::bridge::download_bridge,
             commands::bridge::npm_install_bridge,
             commands::bridge::npm_run_build_bridge,

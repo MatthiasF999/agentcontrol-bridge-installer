@@ -54,6 +54,15 @@ export function detectUbuntu(): Promise<string | null> {
   return invoke<string | null>("detect_ubuntu");
 }
 
+export type GitConfig = {
+  name: string | null;
+  email: string | null;
+};
+
+export function readGitConfig(): Promise<GitConfig> {
+  return invoke<GitConfig>("read_git_config");
+}
+
 export function installUbuntu(): Promise<null> {
   return invoke<null>("install_ubuntu");
 }

@@ -7,6 +7,14 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Phase 55.2.7 — Setup screen pre-fills the **Git user name** + **Git email**
+  fields from the existing WSL distro's `~/.gitconfig` (`git config --global
+  --get user.name / user.email`). Users with a dotfile already in place no
+  longer have to retype either value. Empty / missing config falls through
+  to manual entry as before; user edits always win over the auto-fill.
+
 ### Fixed
 
 - Phase 55.2.6 — `CommandResult` and `WslStatus` structs now serialize as

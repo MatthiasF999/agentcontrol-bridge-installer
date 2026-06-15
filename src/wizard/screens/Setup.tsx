@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "react";
+import { readGitConfig } from "../api";
 import { InputField } from "../components/InputField";
 import type { ScreenProps } from "../state";
 
@@ -7,6 +9,27 @@ export function Setup({ state, dispatch }: ScreenProps) {
   const { gitName, gitEmail } = state.formData;
   const emailValid = EMAIL_RE.test(gitEmail);
   const canStart = gitName.trim().length > 0 && emailValid;
+
+  // Pre-fill from the existing WSL distro's git config so users with a
+  // `~/.gitconfig` already in place don't have to retype name + email. Only
+  // patches fields that are still empty (so the user's edits always win).
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (prefilledRef.current) return;
+    prefilledRef.current = true;
+    readGitConfig()
+      .then((cfg) => {
+        const patch: { gitName?: string; gitEmail?: string } = {};
+        if (cfg.name && !state.formData.gitName) patch.gitName = cfg.name;
+        if (cfg.email && !state.formData.gitEmail) patch.gitEmail = cfg.email;
+        if (Object.keys(patch).length) {
+          dispatch({ type: "UPDATE_FORM", data: patch });
+        }
+      })
+      .catch(() => {
+        /* WSL not installed yet — leave the fields blank for manual entry. */
+      });
+  }, [dispatch, state.formData.gitName, state.formData.gitEmail]);
 
   return (
     <section className="screen">
