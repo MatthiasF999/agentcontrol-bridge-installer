@@ -51,12 +51,24 @@ pub async fn npm_run_build_bridge(
     run_in_wsl(app, distro, cmd, event_id).await
 }
 
-/// Poll the bridge journal for the one-time claim code (`AB12-CD34`) it mints on
-/// boot. Checks once per second for up to 30s; errors if the bridge never logged
-/// one (didn't start, or didn't reach the claim step).
+/// Poll the bridge journal for the one-time claim code (`AB12-CD34`).
+///
+/// The bridge mints a code with a 10-minute TTL the first time it boots
+/// without a stored token. If the SignIn screen is reached more than a
+/// few minutes later (e.g. user re-runs the installer), the original
+/// code is already expired and we need a fresh one — so this function
+/// kicks `systemctl --user restart` first to force the bridge through
+/// the bootCloudMode path again. After the restart we look at the last
+/// 10 minutes of journal to give the bootstrap room and to forgive a
+/// slow first request.
 #[tauri::command]
 pub async fn wait_for_claim_code(distro: String) -> Result<String, String> {
-    let cmd = "journalctl --user -u agentcontrol-bridge --since '2 minutes ago' \
+    let _ = run_in_wsl_capture(
+        &distro,
+        "systemctl --user restart agentcontrol-bridge 2>&1 || true",
+    )
+    .await;
+    let cmd = "journalctl --user -u agentcontrol-bridge --since '10 minutes ago' \
                --no-pager 2>/dev/null | grep -oE '[A-Z0-9]{4}-[A-Z0-9]{4}' | tail -1";
     for _ in 0..30 {
         let out = run_in_wsl_capture(&distro, cmd).await?;

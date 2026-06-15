@@ -23,13 +23,20 @@ pub async fn install_systemd_service(
     distro: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
+    // `restart` instead of `enable --now`: if the bridge was already
+    // running from a previous install (or a previous installer run with a
+    // stale .env), `enable --now` is a no-op and the bridge keeps using
+    // the old env. The `--quiet` form on restart succeeds whether or not
+    // the service was previously active, so it's safe for both first-
+    // install and re-run cases.
     let cmd = format!(
         "mkdir -p $HOME/.config/systemd/user && \
          cat > $HOME/.config/systemd/user/agentcontrol-bridge.service <<'UNIT_EOF'\n\
          {SERVICE_UNIT}\
          UNIT_EOF\n\
          systemctl --user daemon-reload && \
-         systemctl --user enable --now agentcontrol-bridge"
+         systemctl --user enable agentcontrol-bridge && \
+         systemctl --user restart agentcontrol-bridge"
     );
     run_in_wsl(app, distro, cmd, event_id).await
 }

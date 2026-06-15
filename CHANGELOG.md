@@ -9,6 +9,16 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- Phase 55.2.11 — `Sign in` step no longer says "no claim code found in
+  bridge logs within 30s" on re-runs. The bridge mints a code with a
+  10-minute TTL on its first cloud-mode boot; if the SignIn screen is
+  reached later than that (e.g. user re-runs the installer), the
+  original code is expired. Two changes: `install_systemd_service` now
+  runs `enable + restart` instead of `enable --now` so the bridge
+  always picks up the freshly-written `.env`; and `wait_for_claim_code`
+  itself kicks `systemctl --user restart` before polling so every
+  SignIn entry mints a fresh code regardless of how long ago the last
+  boot was. The journalctl window widens from 2 min → 10 min for slop.
 - Phase 55.2.10 — `wsl.exe` no longer pops a fresh console window for
   every step (including the 1 Hz `journalctl` poll on the SignIn
   screen). Spawn child processes with `CREATE_NO_WINDOW` (0x0800_0000)
