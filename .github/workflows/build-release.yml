@@ -1,0 +1,134 @@
+# Phase 55.2.0 — multi-OS Tauri build via GitHub-hosted runners.
+#
+# Trigger: push of a version tag (`vX.Y.Z`) OR manual workflow_dispatch.
+# Builds Linux + Windows + macOS in parallel, attaches all bundles to
+# a GitHub release.
+#
+# Code-signing wiring (Tauri minisign + Windows EV + Apple notarization)
+# lands in Phase 55.2.4 — for v0.0.1 we ship unsigned artifacts purely
+# to validate the pipeline.
+#
+# This repo is PUBLIC on purpose so GH-hosted runners are free-tier and
+# do not contend with the supabase / bridge / app self-hosted runner
+# pool.
+
+name: Build & Release Installer
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag to build (e.g. v0.0.1)'
+        required: true
+        type: string
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
+concurrency:
+  group: build-release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: ubuntu-latest
+            label: linux
+            rust-target: x86_64-unknown-linux-gnu
+            args: ''
+          - platform: macos-14
+            label: macos
+            rust-target: aarch64-apple-darwin
+            args: '--target aarch64-apple-darwin'
+          - platform: windows-latest
+            label: windows
+            rust-target: x86_64-pc-windows-msvc
+            args: ''
+
+    runs-on: ${{ matrix.platform }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev \
+            libgtk-3-dev \
+            libjavascriptcoregtk-4.1-dev
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.rust-target }}
+
+      - name: Cache Rust deps
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          key: ${{ matrix.platform }}-${{ matrix.rust-target }}
+          save-if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install web deps
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Derive + sync version from tag
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ github.event.inputs.version }}
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION#v}"
+          else
+            VERSION="dev"
+          fi
+          echo "Resolved version: $VERSION"
+          tmp=$(mktemp)
+          jq --arg v "$VERSION" '.version = $v' src-tauri/tauri.conf.json > "$tmp" && mv "$tmp" src-tauri/tauri.conf.json
+          tmp=$(mktemp)
+          jq --arg v "$VERSION" '.version = $v' package.json > "$tmp" && mv "$tmp" package.json
+
+      - name: Build Tauri bundles
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'AgentControl Bridge Installer ${{ github.ref_name }}'
+          releaseBody: |
+            Phase 55.2.0 scaffold release — wizard logic ships in Phase 55.2.1.
+
+            Unsigned artifacts; code-signing wiring lands in Phase 55.2.4.
+
+            See CHANGELOG.md for details.
+          releaseDraft: false
+          prerelease: true
+          args: ${{ matrix.args }}
