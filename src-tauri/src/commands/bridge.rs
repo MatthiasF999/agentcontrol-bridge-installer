@@ -2,8 +2,13 @@ use super::shell::{run_in_wsl, run_in_wsl_capture, CommandResult};
 use tauri::AppHandle;
 use tokio::time::{sleep, Duration};
 
-const TARBALL_URL: &str =
-    "https://github.com/MatthiasF999/agentcontrol-bridge/archive/refs/heads/main.tar.gz";
+// Self-hosted tarball on the same Hetzner Caddy that serves /pair-installer.
+// The bridge repo is private, so GitHub's `archive/refs/heads/main.tar.gz`
+// endpoint would 404 without an auth header — and baking a token into the
+// installer is a non-starter. The tarball lives on the host's
+// `install/bridge.tar.gz` (gitignored in the supabase repo), refreshed out
+// of band when the bridge ships a new version.
+const TARBALL_URL: &str = "https://178.105.244.59/install/bridge.tar.gz";
 const BRIDGE_DIR: &str = "$HOME/agentcontrol-bridge";
 
 #[tauri::command]
@@ -12,8 +17,13 @@ pub async fn download_bridge(
     distro: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
+    // `-k` because the Hetzner Caddy serves an internal CA cert (IP literal
+    // for `default_sni`), which Ubuntu inside WSL doesn't trust by default.
+    // Tightening this means either shipping the CA, switching to a public
+    // domain + Let's Encrypt, or signing the tarball and checking the sig
+    // post-download — none of which are critical-path for the first ship.
     let cmd = format!(
-        "mkdir -p {dir} && curl -fsSL {url} | tar -xz -C {dir} --strip-components=1",
+        "mkdir -p {dir} && curl -fsSLk {url} | tar -xz -C {dir} --strip-components=1",
         dir = BRIDGE_DIR,
         url = TARBALL_URL,
     );

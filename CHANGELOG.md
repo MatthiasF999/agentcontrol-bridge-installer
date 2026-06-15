@@ -7,6 +7,17 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Fixed
+
+- Phase 55.2.8 — `Bridge source` step no longer 404s. The previous URL
+  pointed at GitHub's `archive/refs/heads/main.tar.gz` for the private
+  `MatthiasF999/agentcontrol-bridge` repo, which fails for any
+  unauthenticated `curl`. Switched to `https://178.105.244.59/install/
+  bridge.tar.gz` — the Hetzner Caddy that already serves
+  `/pair-installer` now serves the bridge tarball too. The tarball is
+  rebuilt + scp'd to the host out-of-band on each bridge release; see
+  the supabase repo's `install/README.md` for the refresh procedure.
+
 ### Added
 
 - Phase 55.2.7 — Setup screen pre-fills the **Git user name** + **Git email**
