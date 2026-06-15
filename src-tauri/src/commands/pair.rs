@@ -57,6 +57,9 @@ pub fn emit_pair_tokens(app: &AppHandle, url: &Url) {
 /// Write the pairing credentials (returned from the portal after sign-in) into
 /// the bridge `.env`. Does NOT restart — the wizard calls `restart_bridge_service`
 /// separately so the two concerns stay independently retryable.
+///
+/// `lan_api_key` is the cloud-issued shared secret; the bridge reads it from the
+/// `API_KEY` env var (overwriting the random one the install step generated).
 #[tauri::command]
 pub async fn write_pair_env(
     distro: String,
@@ -70,7 +73,7 @@ pub async fn write_pair_env(
         env_upsert("BRIDGE_SMOKE_REFRESH_TOKEN", &refresh_token),
         env_upsert("BRIDGE_SMOKE_BRIDGE_ID", &bridge_id),
         env_upsert("BRIDGE_SMOKE_ORG_ID", &org_id),
-        env_upsert("LAN_API_KEY", &lan_api_key),
+        env_upsert("API_KEY", &lan_api_key),
     );
     let written = run_in_wsl_quiet(&distro, &write_env).await?;
     if written.exit_code != 0 {
