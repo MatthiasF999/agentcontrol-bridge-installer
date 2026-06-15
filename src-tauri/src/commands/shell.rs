@@ -4,6 +4,26 @@ use tauri::{AppHandle, Emitter};
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::Command;
 
+// Windows-only: spawn child processes with CREATE_NO_WINDOW so wsl.exe
+// doesn't pop a fresh console window for every invocation. The Tauri shell
+// is GUI-only (no inherited console), so wsl.exe would otherwise allocate
+// its own — the black flickering rectangles users see in front of the
+// installer between steps.
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+fn wsl_command() -> Command {
+    let cmd = Command::new("wsl");
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = cmd;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        return cmd;
+    }
+    #[cfg(not(target_os = "windows"))]
+    cmd
+}
+
 // Both structs need `rename_all = "camelCase"` — Tauri's IPC layer hands the
 // serialized JSON straight to JS, which expects camelCase keys (`exitCode`,
 // not `exit_code`). Without the rename, `result.exitCode` is `undefined`,
@@ -45,7 +65,7 @@ pub(crate) async fn run_in_wsl_streamed(
     command: &str,
     event_id: &str,
 ) -> Result<CommandResult, String> {
-    let mut wsl = Command::new("wsl");
+    let mut wsl = wsl_command();
     wsl.args(["-d", distro]);
     if let Some(u) = user {
         wsl.args(["-u", u]);
@@ -99,7 +119,7 @@ where
 /// Run a WSL bash command without streaming; used by quick existence/config
 /// checks that only care about the exit code.
 pub(crate) async fn run_in_wsl_quiet(distro: &str, command: &str) -> Result<CommandResult, String> {
-    let status = Command::new("wsl")
+    let status = wsl_command()
         .args(["-d", distro, "--", "bash", "-c", command])
         .status()
         .await
@@ -112,7 +132,7 @@ pub(crate) async fn run_in_wsl_quiet(distro: &str, command: &str) -> Result<Comm
 /// Run a WSL bash command and return its trimmed stdout. Used by checks that
 /// need the command's output (e.g. grepping a claim code out of the logs).
 pub(crate) async fn run_in_wsl_capture(distro: &str, command: &str) -> Result<String, String> {
-    let output = Command::new("wsl")
+    let output = wsl_command()
         .args(["-d", distro, "--", "bash", "-c", command])
         .output()
         .await
@@ -122,7 +142,7 @@ pub(crate) async fn run_in_wsl_capture(distro: &str, command: &str) -> Result<St
 
 /// Run `wsl <args...>` on the host (not inside a distro), e.g. `wsl --install`.
 pub(crate) async fn run_wsl_host(args: &[&str]) -> Result<CommandResult, String> {
-    let status = Command::new("wsl")
+    let status = wsl_command()
         .args(args)
         .status()
         .await

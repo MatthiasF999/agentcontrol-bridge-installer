@@ -9,6 +9,11 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- Phase 55.2.10 — `wsl.exe` no longer pops a fresh console window for
+  every step (including the 1 Hz `journalctl` poll on the SignIn
+  screen). Spawn child processes with `CREATE_NO_WINDOW` (0x0800_0000)
+  on Windows; the Tauri shell has no inherited console so wsl.exe
+  would otherwise allocate its own. Linux/macOS code paths unchanged.
 - Phase 55.2.9 — `Generate .env` step now wires the bridge to the
   AgentControl Supabase backend. v0.0.9's `.env` was a verbatim copy of
   `.env.example` with only `API_KEY` + `CLAUDE_HOME` filled in, so

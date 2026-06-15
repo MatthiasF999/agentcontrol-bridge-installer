@@ -1,6 +1,25 @@
 use super::shell::{run_wsl_host, CommandResult};
 use serde::Serialize;
 use std::process::Command;
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+// Same CREATE_NO_WINDOW story as shell.rs — the sync `wsl --status` /
+// `wsl --list --quiet` calls would otherwise each flash their own console.
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+
+fn wsl_command() -> Command {
+    let cmd = Command::new("wsl");
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = cmd;
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        return cmd;
+    }
+    #[cfg(not(target_os = "windows"))]
+    cmd
+}
 
 // camelCase rename so JS can read `wsl.defaultDistro` directly. Without this,
 // the property is `undefined` on the JS side and the v0.0.5 detect-existing
@@ -22,7 +41,7 @@ pub fn detect_wsl() -> Result<WslStatus, String> {
             distros: Vec::new(),
         });
     }
-    let status = Command::new("wsl").arg("--status").output();
+    let status = wsl_command().arg("--status").output();
     let installed = matches!(&status, Ok(o) if o.status.success());
     if !installed {
         return Ok(WslStatus {
@@ -46,7 +65,7 @@ pub async fn install_wsl() -> Result<CommandResult, String> {
 
 /// `wsl --list --quiet`, decoded from the UTF-16LE that wsl.exe emits.
 pub(crate) fn list_distros() -> Vec<String> {
-    let Ok(output) = Command::new("wsl").args(["--list", "--quiet"]).output() else {
+    let Ok(output) = wsl_command().args(["--list", "--quiet"]).output() else {
         return Vec::new();
     };
     decode(&output.stdout)
