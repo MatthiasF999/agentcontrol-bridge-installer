@@ -20,7 +20,7 @@ const STEPS: ReadonlyArray<{ key: string; title: string; description: string }> 
   { key: "done", title: "Done", description: "Bridge running, app download link" },
 ];
 
-export default function App(): JSX.Element {
+export default function App() {
   const [active, setActive] = useState<number>(0);
   return (
     <div className="layout">
