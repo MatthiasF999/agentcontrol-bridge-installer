@@ -16,10 +16,23 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
-- Collapsed the 15 step screens to 4 user-visible screens (Setup →
-  Installing → Sign in to Claude Code → Done); the 11 non-interactive
-  sub-tasks now run automatically inside the Installing screen with a
-  single progress bar and live log.
+- Phase 55.2.3 — replaced the three paste-in pairing-token fields with a
+  deep-link sign-in flow on a dedicated **Sign in to AgentControl**
+  screen that runs *after* install (so the bridge can mint a one-time
+  claim code). The screen reads the claim code from the bridge journal
+  (`wait_for_claim_code`), opens the operator portal
+  `/pair-installer/?code=…&label=…` page, and captures the returned
+  tokens (incl. `lan_api_key`) via the `agentcontrol-bridge-installer://`
+  URL scheme (`tauri-plugin-deep-link`) → `pair-tokens-received` event.
+  On receive it writes the env (`write_pair_env`) and restarts the
+  bridge (`restart_bridge_service`). New wizard order:
+  Setup → Installing → Sign in to AgentControl → Sign in to Claude Code
+  → Done. Pairing is skippable. Removed `pair_bridge`; Done no longer
+  carries a manual paste-in pair form.
+- Collapsed the 15 step screens to 5 user-visible screens (Setup →
+  Installing → Sign in to AgentControl → Sign in to Claude Code →
+  Done); the 11 non-interactive sub-tasks now run automatically inside
+  the Installing screen with a single progress bar and live log.
 - Pairing now uses three tokens (refresh token + bridge ID + org ID)
   from the operator portal "Pair new bridge" flow instead of a single
   claim code; `pair_bridge` no longer streams output.

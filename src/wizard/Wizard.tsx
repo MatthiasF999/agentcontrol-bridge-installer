@@ -3,11 +3,13 @@ import { ClaudeAuth } from "./screens/ClaudeAuth";
 import { Done } from "./screens/Done";
 import { Installing } from "./screens/Installing";
 import { Setup } from "./screens/Setup";
+import { SignIn } from "./screens/SignIn";
 import { initialState, reducer, type Screen, type ScreenProps } from "./state";
 
 const SCREENS: Record<Screen, (props: ScreenProps) => ReactElement> = {
   setup: Setup,
   installing: Installing,
+  signin: SignIn,
   claudeauth: ClaudeAuth,
   done: Done,
 };

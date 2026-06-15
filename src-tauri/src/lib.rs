@@ -7,12 +7,25 @@
 
 mod commands;
 
+use tauri_plugin_deep_link::DeepLinkExt;
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
-        .setup(|_app| Ok(()))
+        .plugin(tauri_plugin_deep_link::init())
+        .setup(|app| {
+            #[cfg(desktop)]
+            let _ = app.deep_link().register_all();
+            let handle = app.handle().clone();
+            app.deep_link().on_open_url(move |event| {
+                for url in event.urls() {
+                    commands::pair::emit_pair_tokens(&handle, &url);
+                }
+            });
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::wsl::detect_wsl,
             commands::wsl::install_wsl,
@@ -26,13 +39,16 @@ pub fn run() {
             commands::bridge::download_bridge,
             commands::bridge::npm_install_bridge,
             commands::bridge::npm_run_build_bridge,
+            commands::bridge::wait_for_claim_code,
             commands::api_key::generate_api_key,
             commands::api_key::write_env_file,
             commands::oauth::open_claude_oauth,
             commands::oauth::poll_claude_creds,
             commands::pair::open_operator_portal,
-            commands::pair::pair_bridge,
+            commands::pair::write_pair_env,
+            commands::system::get_machine_label,
             commands::systemd::install_systemd_service,
+            commands::systemd::restart_bridge_service,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

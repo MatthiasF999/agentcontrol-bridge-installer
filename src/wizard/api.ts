@@ -1,5 +1,33 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { openUrl } from "@tauri-apps/plugin-opener";
+
+const PAIR_INSTALLER_URL = "https://178.105.244.59/pair-installer";
+
+export type PairTokens = {
+  refresh_token: string;
+  bridge_id: string;
+  org_id: string;
+  lan_api_key: string;
+};
+
+export function openPairInstallerSignIn(
+  code: string,
+  label: string,
+): Promise<void> {
+  // Param is "claim_code" not "code" — the operator-portal magic-link return URL
+  // already carries GoTrue's PKCE ?code=, which would collide.
+  const url = `${PAIR_INSTALLER_URL}/?claim_code=${encodeURIComponent(code)}&label=${encodeURIComponent(label)}`;
+  return openUrl(url);
+}
+
+export function listenForPairTokens(
+  handler: (tokens: PairTokens) => void,
+): Promise<UnlistenFn> {
+  return listen<PairTokens>("pair-tokens-received", (event) => {
+    handler(event.payload);
+  });
+}
 
 export type WslStatus = {
   installed: boolean;
@@ -118,13 +146,32 @@ export function openOperatorPortal(): Promise<null> {
   return invoke<null>("open_operator_portal");
 }
 
-export function pairBridge(
+export function waitForClaimCode(distro: string): Promise<string> {
+  return invoke<string>("wait_for_claim_code", { distro });
+}
+
+export function getMachineLabel(): Promise<string> {
+  return invoke<string>("get_machine_label");
+}
+
+export function writePairEnv(
   distro: string,
   refreshToken: string,
   bridgeId: string,
   orgId: string,
+  lanApiKey: string,
 ): Promise<void> {
-  return invoke<void>("pair_bridge", { distro, refreshToken, bridgeId, orgId });
+  return invoke<void>("write_pair_env", {
+    distro,
+    refreshToken,
+    bridgeId,
+    orgId,
+    lanApiKey,
+  });
+}
+
+export function restartBridgeService(distro: string): Promise<void> {
+  return invoke<void>("restart_bridge_service", { distro });
 }
 
 export function installSystemdService(

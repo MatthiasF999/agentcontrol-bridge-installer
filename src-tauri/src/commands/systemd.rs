@@ -1,4 +1,4 @@
-use super::shell::{run_in_wsl, CommandResult};
+use super::shell::{run_in_wsl, run_in_wsl_quiet, CommandResult};
 use tauri::AppHandle;
 
 const SERVICE_UNIT: &str = r#"[Unit]
@@ -32,4 +32,20 @@ pub async fn install_systemd_service(
          systemctl --user enable --now agentcontrol-bridge"
     );
     run_in_wsl(app, distro, cmd, event_id).await
+}
+
+/// Restart the bridge service (so it picks up freshly-written pairing env) and
+/// wait for `/health` to report 200 for up to ~30s.
+#[tauri::command]
+pub async fn restart_bridge_service(distro: String) -> Result<(), String> {
+    run_in_wsl_quiet(&distro, "systemctl --user restart agentcontrol-bridge").await?;
+    let probe = "sleep 3; for _ in $(seq 1 15); do \
+                 code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/health || true); \
+                 if [ \"$code\" = \"200\" ]; then exit 0; fi; sleep 2; done; exit 1";
+    let result = run_in_wsl_quiet(&distro, probe).await?;
+    if result.exit_code == 0 {
+        Ok(())
+    } else {
+        Err("bridge did not report healthy within 30s after restart".to_string())
+    }
 }

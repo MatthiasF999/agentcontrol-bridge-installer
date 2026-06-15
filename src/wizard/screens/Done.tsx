@@ -1,39 +1,20 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useState } from "react";
-import { pairBridge } from "../api";
-import { InputField } from "../components/InputField";
 import type { ScreenProps } from "../state";
 
 const OPERATOR_URL = "https://178.105.244.59/operator";
 const APP_URL = "https://178.105.244.59/operator/download";
 
-export function Done({ state, dispatch }: ScreenProps) {
-  const { apiKey, formData } = state;
-  const { distro, paired } = state.install;
-  const { refreshToken, bridgeId, orgId } = formData;
+export function Done({ state }: ScreenProps) {
+  const { apiKey } = state;
+  const { paired } = state.install;
   const [copied, setCopied] = useState(false);
-  const [pairing, setPairing] = useState(false);
-  const [pairError, setPairError] = useState<string | null>(null);
 
   const copyKey = async () => {
     await navigator.clipboard.writeText(apiKey);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
-  };
-
-  const canPair = Boolean(refreshToken && bridgeId && orgId);
-  const pairNow = async () => {
-    setPairing(true);
-    setPairError(null);
-    try {
-      await pairBridge(distro, refreshToken, bridgeId, orgId);
-      dispatch({ type: "SET_PAIRED", paired: true });
-    } catch (e) {
-      setPairError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setPairing(false);
-    }
   };
 
   return (
@@ -53,44 +34,10 @@ export function Done({ state, dispatch }: ScreenProps) {
       {paired ? (
         <p className="step-ok">Bridge paired with your AgentControl org.</p>
       ) : (
-        <>
-          <p className="screen-section">
-            Pair this bridge with your org (operator portal → "Pair new
-            bridge"):
-          </p>
-          <InputField
-            label="Refresh token"
-            value={refreshToken}
-            onChange={(v) =>
-              dispatch({ type: "UPDATE_FORM", data: { refreshToken: v } })
-            }
-          />
-          <InputField
-            label="Bridge ID"
-            value={bridgeId}
-            onChange={(v) =>
-              dispatch({ type: "UPDATE_FORM", data: { bridgeId: v } })
-            }
-          />
-          <InputField
-            label="Org ID"
-            value={orgId}
-            onChange={(v) =>
-              dispatch({ type: "UPDATE_FORM", data: { orgId: v } })
-            }
-          />
-          <button
-            type="button"
-            className="btn-primary"
-            disabled={!canPair || pairing}
-            onClick={pairNow}
-          >
-            {pairing ? "Pairing…" : "Pair bridge"}
-          </button>
-          {pairError ? (
-            <div className="step-error-banner">{pairError}</div>
-          ) : null}
-        </>
+        <p className="step-hint">
+          Not paired yet — you can pair this bridge later from the operator
+          portal.
+        </p>
       )}
 
       <ul className="link-list">

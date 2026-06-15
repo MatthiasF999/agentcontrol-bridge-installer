@@ -25,6 +25,13 @@
     ],
     "security": { "csp": null }
   },
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["agentcontrol-bridge-installer"]
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": ["nsis", "msi", "deb", "appimage", "dmg"],
