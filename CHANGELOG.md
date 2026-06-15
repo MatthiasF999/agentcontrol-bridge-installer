@@ -9,6 +9,13 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- Phase 55.2.5 — `System dependencies`, `Node.js 22` and `Claude Code CLI`
+  steps no longer hang silently on a hidden sudo password prompt. They now
+  run under `wsl -u root` so `sudo` (and its `/dev/tty` password prompt) is
+  out of the picture. Symptom in v0.0.5: a blank `wsl.exe` window with a
+  blinking cursor + the installer stuck on "Waiting for output…". Per-user
+  steps (git clone, npm install, build, systemd-user) continue to run as
+  the distro's default user so `node_modules` ownership stays correct.
 - Phase 55.2.4 — Ubuntu-detection no longer exact-matches `"Ubuntu-22.04"`.
   The installer now reuses whatever WSL distro is already present (preferring
   the WSL default if one is set) instead of installing a second Ubuntu

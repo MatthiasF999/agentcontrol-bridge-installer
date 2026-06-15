@@ -1,5 +1,11 @@
-use super::shell::{run_in_wsl, CommandResult};
+use super::shell::{run_in_wsl_streamed, CommandResult};
 use tauri::AppHandle;
+
+/// All three commands install system-wide packages and so must run as `root`.
+/// Going through `sudo` instead would hang forever — `sudo` reads its password
+/// prompt from `/dev/tty`, not piped stdin, so the installer never sees a
+/// prompt and the call sits there with a blank wsl.exe window. Running with
+/// `wsl -u root` skips `sudo` entirely.
 
 #[tauri::command]
 pub async fn apt_install_deps(
@@ -7,9 +13,10 @@ pub async fn apt_install_deps(
     distro: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
-    let cmd = "sudo apt-get update && sudo apt-get install -y \
+    let cmd = "DEBIAN_FRONTEND=noninteractive apt-get update && \
+               DEBIAN_FRONTEND=noninteractive apt-get install -y \
                build-essential git curl python3 openssl ca-certificates";
-    run_in_wsl(app, distro, cmd.to_string(), event_id).await
+    run_in_wsl_streamed(app, &distro, Some("root"), cmd, &event_id).await
 }
 
 #[tauri::command]
@@ -18,9 +25,9 @@ pub async fn install_node22(
     distro: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
-    let cmd = "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - \
-               && sudo apt-get install -y nodejs";
-    run_in_wsl(app, distro, cmd.to_string(), event_id).await
+    let cmd = "curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
+               DEBIAN_FRONTEND=noninteractive apt-get install -y nodejs";
+    run_in_wsl_streamed(app, &distro, Some("root"), cmd, &event_id).await
 }
 
 #[tauri::command]
@@ -29,6 +36,6 @@ pub async fn install_claude_cli(
     distro: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
-    let cmd = "sudo npm install -g @anthropic-ai/claude-code";
-    run_in_wsl(app, distro, cmd.to_string(), event_id).await
+    let cmd = "npm install -g @anthropic-ai/claude-code";
+    run_in_wsl_streamed(app, &distro, Some("root"), cmd, &event_id).await
 }

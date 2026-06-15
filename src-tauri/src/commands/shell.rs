@@ -25,8 +25,26 @@ pub async fn run_in_wsl(
     command: String,
     event_id: String,
 ) -> Result<CommandResult, String> {
-    let mut child = Command::new("wsl")
-        .args(["-d", &distro, "--", "bash", "-c", &command])
+    run_in_wsl_streamed(app, &distro, None, &command, &event_id).await
+}
+
+/// Streaming variant used by install steps that must run as `root` inside
+/// the distro (apt-get, global npm). `sudo` would read its password from
+/// `/dev/tty`, not piped stdin, so a piped `sudo` silently hangs forever.
+pub(crate) async fn run_in_wsl_streamed(
+    app: AppHandle,
+    distro: &str,
+    user: Option<&str>,
+    command: &str,
+    event_id: &str,
+) -> Result<CommandResult, String> {
+    let mut wsl = Command::new("wsl");
+    wsl.args(["-d", distro]);
+    if let Some(u) = user {
+        wsl.args(["-u", u]);
+    }
+    wsl.args(["--", "bash", "-c", command]);
+    let mut child = wsl
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
