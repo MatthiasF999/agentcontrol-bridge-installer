@@ -7,6 +7,19 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+
+- Phase 55.2.1 — real 15-step wizard frontend driven by the Tauri
+  command contract. Adds a **Build bridge** step (`npm run build`,
+  compiles TypeScript to `dist/`) between npm install and `.env`
+  generation.
+
+### Changed
+
+- Pairing now uses three tokens (refresh token + bridge ID + org ID)
+  from the operator portal "Pair new bridge" flow instead of a single
+  claim code; `pair_bridge` no longer streams output.
+
 ## [0.0.1] — 2026-06-15
 
 ### Added
