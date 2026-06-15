@@ -15,7 +15,9 @@ export function openPairInstallerSignIn(
   code: string,
   label: string,
 ): Promise<void> {
-  const url = `${PAIR_INSTALLER_URL}/?code=${encodeURIComponent(code)}&label=${encodeURIComponent(label)}`;
+  // Param is "claim_code" not "code" — the operator-portal magic-link return URL
+  // already carries GoTrue's PKCE ?code=, which would collide.
+  const url = `${PAIR_INSTALLER_URL}/?claim_code=${encodeURIComponent(code)}&label=${encodeURIComponent(label)}`;
   return openUrl(url);
 }
 
