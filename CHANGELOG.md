@@ -9,6 +9,16 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Fixed
 
+- Phase 55.2.9 — `Generate .env` step now wires the bridge to the
+  AgentControl Supabase backend. v0.0.9's `.env` was a verbatim copy of
+  `.env.example` with only `API_KEY` + `CLAUDE_HOME` filled in, so
+  `SUPABASE_URL` and `SUPABASE_ANON_KEY` stayed empty and the bridge
+  couldn't call `bridge-claim` to mint a pairing code. Symptom: SignIn
+  screen stuck on "Preparing…" with a WSL terminal flashing every
+  second (the journal-poll). v0.0.10 sets `SUPABASE_URL`,
+  `SUPABASE_FUNCTIONS_URL`, `SUPABASE_ANON_KEY` and
+  `NODE_TLS_REJECT_UNAUTHORIZED=0` (latter for Caddy's internal CA;
+  proper fix is shipping the CA + `NODE_EXTRA_CA_CERTS`).
 - Phase 55.2.8 — `Bridge source` step no longer 404s. The previous URL
   pointed at GitHub's `archive/refs/heads/main.tar.gz` for the private
   `MatthiasF999/agentcontrol-bridge` repo, which fails for any
