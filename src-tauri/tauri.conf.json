@@ -34,7 +34,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis", "msi", "deb", "appimage", "dmg"],
+    "targets": ["nsis", "deb", "appimage", "dmg"],
     "category": "DeveloperTool",
     "shortDescription": "Install AgentControl Bridge with one wizard",
     "longDescription": "Real installer for the AgentControl Bridge. Sets up WSL2 + Ubuntu on Windows, installs Node and Claude Code CLI, configures git, downloads the bridge, generates a fresh API key and walks you through pairing — no Tailscale dependency.",
