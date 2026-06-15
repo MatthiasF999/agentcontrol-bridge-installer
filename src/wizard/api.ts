@@ -8,10 +8,15 @@ export type PairTokens = {
   refresh_token: string;
   bridge_id: string;
   org_id: string;
+  lan_api_key: string;
 };
 
-export function openPairInstallerSignIn(): Promise<void> {
-  return openUrl(PAIR_INSTALLER_URL);
+export function openPairInstallerSignIn(
+  code: string,
+  label: string,
+): Promise<void> {
+  const url = `${PAIR_INSTALLER_URL}/?code=${encodeURIComponent(code)}&label=${encodeURIComponent(label)}`;
+  return openUrl(url);
 }
 
 export function listenForPairTokens(
@@ -139,13 +144,32 @@ export function openOperatorPortal(): Promise<null> {
   return invoke<null>("open_operator_portal");
 }
 
-export function pairBridge(
+export function waitForClaimCode(distro: string): Promise<string> {
+  return invoke<string>("wait_for_claim_code", { distro });
+}
+
+export function getMachineLabel(): Promise<string> {
+  return invoke<string>("get_machine_label");
+}
+
+export function writePairEnv(
   distro: string,
   refreshToken: string,
   bridgeId: string,
   orgId: string,
+  lanApiKey: string,
 ): Promise<void> {
-  return invoke<void>("pair_bridge", { distro, refreshToken, bridgeId, orgId });
+  return invoke<void>("write_pair_env", {
+    distro,
+    refreshToken,
+    bridgeId,
+    orgId,
+    lanApiKey,
+  });
+}
+
+export function restartBridgeService(distro: string): Promise<void> {
+  return invoke<void>("restart_bridge_service", { distro });
 }
 
 export function installSystemdService(

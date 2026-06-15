@@ -39,13 +39,16 @@ pub fn run() {
             commands::bridge::download_bridge,
             commands::bridge::npm_install_bridge,
             commands::bridge::npm_run_build_bridge,
+            commands::bridge::wait_for_claim_code,
             commands::api_key::generate_api_key,
             commands::api_key::write_env_file,
             commands::oauth::open_claude_oauth,
             commands::oauth::poll_claude_creds,
             commands::pair::open_operator_portal,
-            commands::pair::pair_bridge,
+            commands::pair::write_pair_env,
+            commands::system::get_machine_label,
             commands::systemd::install_systemd_service,
+            commands::systemd::restart_bridge_service,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

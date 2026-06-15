@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { listenWslOutput, pairBridge } from "../api";
+import { listenWslOutput } from "../api";
 import { LogStream } from "../components/LogStream";
 import { executeStep, STREAMING_STEPS } from "../installRunner";
 import {
@@ -52,20 +52,7 @@ export function Installing({ state, dispatch }: ScreenProps) {
             unlisten?.();
           }
         }
-        if (formData.refreshToken && formData.bridgeId && formData.orgId) {
-          try {
-            await pairBridge(
-              distro,
-              formData.refreshToken,
-              formData.bridgeId,
-              formData.orgId,
-            );
-            dispatch({ type: "SET_PAIRED", paired: true });
-          } catch {
-            dispatch({ type: "SET_PAIRED", paired: false });
-          }
-        }
-        dispatch({ type: "SCREEN", screen: "claudeauth" });
+        dispatch({ type: "SCREEN", screen: "signin" });
       } finally {
         runningRef.current = false;
       }

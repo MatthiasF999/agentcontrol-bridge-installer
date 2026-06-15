@@ -1,6 +1,6 @@
 import type { Dispatch } from "react";
 
-export type Screen = "setup" | "installing" | "claudeauth" | "done";
+export type Screen = "setup" | "installing" | "signin" | "claudeauth" | "done";
 
 export type AutoStep =
   | "wsl_install"
@@ -20,9 +20,6 @@ export type StepStatus = "pending" | "running" | "done" | "error";
 export type FormData = {
   gitName: string;
   gitEmail: string;
-  refreshToken: string;
-  bridgeId: string;
-  orgId: string;
 };
 
 export type InstallState = {
@@ -38,6 +35,8 @@ export type WizardState = {
   formData: FormData;
   install: InstallState;
   apiKey: string;
+  signinClaimCode: string;
+  signinLabel: string;
 };
 
 export type Action =
@@ -49,7 +48,8 @@ export type Action =
   | { type: "STEP_ERROR"; step: AutoStep; error: string }
   | { type: "APPEND_LOG"; step: AutoStep; line: string }
   | { type: "SET_API_KEY"; key: string }
-  | { type: "SET_PAIRED"; paired: boolean };
+  | { type: "SET_PAIRED"; paired: boolean }
+  | { type: "SET_SIGNIN"; claimCode: string; label: string };
 
 export const AUTO_STEPS: readonly AutoStep[] = [
   "wsl_install",
@@ -93,9 +93,6 @@ export const initialState: WizardState = {
   formData: {
     gitName: "",
     gitEmail: "",
-    refreshToken: "",
-    bridgeId: "",
-    orgId: "",
   },
   install: {
     stepStatus: fill<StepStatus>(() => "pending"),
@@ -105,6 +102,8 @@ export const initialState: WizardState = {
     paired: false,
   },
   apiKey: "",
+  signinClaimCode: "",
+  signinLabel: "",
 };
 
 function patchInstall(
@@ -147,6 +146,12 @@ export function reducer(state: WizardState, action: Action): WizardState {
       return { ...state, apiKey: action.key };
     case "SET_PAIRED":
       return patchInstall(state, { paired: action.paired });
+    case "SET_SIGNIN":
+      return {
+        ...state,
+        signinClaimCode: action.claimCode,
+        signinLabel: action.label,
+      };
     default:
       return state;
   }

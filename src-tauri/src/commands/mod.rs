@@ -5,6 +5,7 @@ pub mod git_cfg;
 pub mod oauth;
 pub mod pair;
 pub mod shell;
+pub mod system;
 pub mod systemd;
 pub mod ubuntu;
 pub mod wsl;

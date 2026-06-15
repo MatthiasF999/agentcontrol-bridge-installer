@@ -17,28 +17,30 @@ phase plan.
 
 ## What the installer does
 
-Four user-visible screens. The bulk of the work — 11 automated
+Five user-visible screens. The bulk of the work — 11 automated
 sub-tasks — runs without interaction inside the **Installing** screen.
 
-1. **Setup** — git name, git email, and a **"Sign in to AgentControl"**
-   button. Sign-in opens the operator portal `/pair-installer` page in
-   the browser; after authenticating it redirects to the
-   `agentcontrol-bridge-installer://pair?refresh_token=…&bridge_id=…&org_id=…`
-   deep link, which the installer captures to auto-pair. Sign-in is
-   optional — skip it and pair manually on the Done screen later.
-   "Start installation".
+1. **Setup** — git name + git email. "Start installation".
 2. **Installing** — runs 11 sub-tasks sequentially with a live log and
    progress bar; auto-advances when finished, Retry on error:
    WSL2 → Ubuntu 22.04 → system dependencies → git config →
    Node.js 22 → Claude Code CLI → bridge source → npm install →
    build bridge (`npm run build`) → generate `.env` (64-char `API_KEY`)
-   → systemd-user service. If pairing tokens were given, pairing runs
-   as the final sub-task.
-3. **Sign in to Claude Code** — opens the browser for OAuth; polls for
+   → systemd-user service. The bridge starts here, which mints a
+   one-time **claim code** in its journal.
+3. **Sign in to AgentControl** — reads the claim code from the bridge
+   journal and opens the operator portal
+   `/pair-installer/?code=<CLAIM_CODE>&label=<MACHINE>` page. After
+   sign-in the portal redirects to the
+   `agentcontrol-bridge-installer://pair?refresh_token=…&bridge_id=…&org_id=…&lan_api_key=…`
+   deep link; the installer writes those into the bridge `.env`,
+   restarts the service and auto-advances. Optional — "Skip for now"
+   continues without pairing.
+4. **Sign in to Claude Code** — opens the browser for OAuth; polls for
    credentials and auto-advances once detected.
-4. **Done** — shows the `API_KEY` (needed for first AgentControl app
-   sign-in), pairing status (or an inline pair form if deferred), and
-   links to the operator portal + AgentControl app download.
+5. **Done** — shows the `API_KEY` (needed for first AgentControl app
+   sign-in), pairing status, and links to the operator portal +
+   AgentControl app download.
 
 ## What the installer does NOT do
 

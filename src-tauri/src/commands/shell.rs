@@ -84,6 +84,17 @@ pub(crate) async fn run_in_wsl_quiet(distro: &str, command: &str) -> Result<Comm
     })
 }
 
+/// Run a WSL bash command and return its trimmed stdout. Used by checks that
+/// need the command's output (e.g. grepping a claim code out of the logs).
+pub(crate) async fn run_in_wsl_capture(distro: &str, command: &str) -> Result<String, String> {
+    let output = Command::new("wsl")
+        .args(["-d", distro, "--", "bash", "-c", command])
+        .output()
+        .await
+        .map_err(|e| format!("failed to spawn wsl: {e}"))?;
+    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+}
+
 /// Run `wsl <args...>` on the host (not inside a distro), e.g. `wsl --install`.
 pub(crate) async fn run_wsl_host(args: &[&str]) -> Result<CommandResult, String> {
     let status = Command::new("wsl")
