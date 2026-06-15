@@ -28,3 +28,14 @@ pub async fn npm_install_bridge(
     let cmd = format!("cd {BRIDGE_DIR} && npm install --no-fund --no-audit");
     run_in_wsl(app, distro, cmd, event_id).await
 }
+
+/// Compile the bridge TypeScript; required before `npm start` runs `dist/index.js`.
+#[tauri::command]
+pub async fn npm_run_build_bridge(
+    app: AppHandle,
+    distro: String,
+    event_id: String,
+) -> Result<CommandResult, String> {
+    let cmd = format!("cd {BRIDGE_DIR} && npm run build");
+    run_in_wsl(app, distro, cmd, event_id).await
+}

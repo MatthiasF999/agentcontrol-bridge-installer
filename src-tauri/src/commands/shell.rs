@@ -100,3 +100,14 @@ pub(crate) async fn run_wsl_host(args: &[&str]) -> Result<CommandResult, String>
 pub(crate) fn shell_quote(value: &str) -> String {
     format!("'{}'", value.replace('\'', "'\\''"))
 }
+
+/// Bash snippet that sets `KEY=value` in `.env` (cwd-relative): replaces an
+/// existing line or appends one. Run with the bridge dir as the working dir.
+pub(crate) fn env_upsert(key: &str, value: &str) -> String {
+    let q = shell_quote(value);
+    format!(
+        "if grep -q '^{key}=' .env; then \
+           sed -i \"s|^{key}=.*|{key}=$(printf %s {q})|\" .env; \
+         else echo \"{key}=$(printf %s {q})\" >> .env; fi"
+    )
+}

@@ -1,4 +1,4 @@
-use super::shell::{run_in_wsl_quiet, shell_quote};
+use super::shell::{env_upsert, run_in_wsl_quiet, shell_quote};
 use rand::RngCore;
 
 const PLACEHOLDER: &str = "change-me-generate-a-long-random-string";
@@ -20,13 +20,10 @@ pub async fn write_env_file(
     claude_home: String,
 ) -> Result<(), String> {
     let key = shell_quote(&api_key);
-    let home = shell_quote(&claude_home);
     let cmd = format!(
         "cd {BRIDGE_DIR} && cp -n .env.example .env && \
-         sed -i \"s|{PLACEHOLDER}|$(printf %s {key})|\" .env && \
-         if grep -q '^CLAUDE_HOME=' .env; then \
-           sed -i \"s|^CLAUDE_HOME=.*|CLAUDE_HOME=$(printf %s {home})|\" .env; \
-         else echo \"CLAUDE_HOME=$(printf %s {home})\" >> .env; fi",
+         sed -i \"s|{PLACEHOLDER}|$(printf %s {key})|\" .env && {}",
+        env_upsert("CLAUDE_HOME", &claude_home),
     );
     let result = run_in_wsl_quiet(&distro, &cmd).await?;
     if result.exit_code == 0 {
