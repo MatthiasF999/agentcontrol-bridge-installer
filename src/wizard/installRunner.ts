@@ -18,7 +18,11 @@ import {
 } from "./api";
 import type { Action, AutoStep, FormData } from "./state";
 
-const CLAUDE_HOME = "~/.claude";
+// `$HOME` (literal) lands in the rendered .env line; WSL bash expands
+// it the first time the bridge sources the file. A tilde would NOT
+// expand because the env-write happens via sed/upsert that treats the
+// value as data, not as a command-position token.
+const CLAUDE_HOME = "$HOME/.claude";
 
 export const STREAMING_STEPS: ReadonlySet<AutoStep> = new Set<AutoStep>([
   "deps",
