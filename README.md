@@ -1,71 +1,37 @@
-# AgentControl Bridge Installer
+# AgentControl Bridge Installer — DEPRECATED
 
-Tauri 2.x installer wizard for the **AgentControl Bridge** — handles
-WSL2 + Ubuntu setup on Windows, installs Node.js + Claude Code CLI,
-configures git, downloads the bridge, generates a fresh API key, and
-walks the user through pairing.
+> [!WARNING]
+> **This repo is deprecated as of Phase 55.3.0.** Its functionality
+> has been folded into [`agentcontrol-tray`](https://github.com/MatthiasF999/agentcontrol-tray),
+> a Tauri 2 menu-bar / system-tray app that handles BOTH first-run
+> onboarding (what this installer used to do) AND persistent
+> start/stop/status control for the bridge daemon (Tailscale-pattern).
+>
+> Download the tray app from [`agentcontrol-tray` releases](https://github.com/MatthiasF999/agentcontrol-tray/releases/latest).
 
-## Status
+## Why we moved
 
-**Phase 55.2.0 — scaffold + GH Actions build pipeline (this release).**
-First tagged `v0.0.1` ships an empty wizard skeleton purely to prove
-the bundler produces `.msi`/`.nsis exe`/`.dmg`/`.deb`/`.AppImage` on
-GH-hosted runners. Wizard logic lands in Phase 55.2.1.
+A one-shot installer that ends up in `/Applications/` (macOS) or
+`Programs and Features` (Windows) is a UX anti-pattern — the
+installer is gone the moment it's done, but users still see it
+sitting in their app list. Worse, there's no way for the user to
+restart or stop the bridge from a GUI; they'd have to drop to a
+terminal and run `systemctl --user`.
 
-See `agentcontrol-supabase/docs/PHASE-55-SUMMARY.md` for the full
-phase plan.
+The tray app fixes both problems: it's a persistent menu-bar icon
+(like Tailscale, Docker Desktop, etc.) that controls the bridge
+daemon. First run does the install; subsequent runs are the control
+panel. The thing that ends up in `/Applications/` is the persistent
+UI, which is what users expect to see persisted.
 
-## What the installer does
+## Historical artifacts
 
-Five user-visible screens. The bulk of the work — 11 automated
-sub-tasks — runs without interaction inside the **Installing** screen.
+Tags `v0.0.1` … `v0.0.16` remain published for users on the old
+flow. They still work — the bridge `.env` shape + Hetzner
+`/install/bridge.tar.gz` + `/app/pair-bridge` URL all stayed
+compatible. But all future development happens in `agentcontrol-tray`.
 
-1. **Setup** — git name + git email. "Start installation".
-2. **Installing** — runs 11 sub-tasks sequentially with a live log and
-   progress bar; auto-advances when finished, Retry on error:
-   WSL2 → Ubuntu 22.04 → system dependencies → git config →
-   Node.js 22 → Claude Code CLI → bridge source → npm install →
-   build bridge (`npm run build`) → generate `.env` (64-char `API_KEY`)
-   → systemd-user service. The bridge starts here, which mints a
-   one-time **claim code** in its journal.
-3. **Sign in to AgentControl** — reads the claim code from the bridge
-   journal and opens the operator portal
-   `/pair-installer/?code=<CLAIM_CODE>&label=<MACHINE>` page. After
-   sign-in the portal redirects to the
-   `agentcontrol-bridge-installer://pair?refresh_token=…&bridge_id=…&org_id=…&lan_api_key=…`
-   deep link; the installer writes those into the bridge `.env`,
-   restarts the service and auto-advances. Optional — "Skip for now"
-   continues without pairing.
-4. **Sign in to Claude Code** — opens the browser for OAuth; polls for
-   credentials and auto-advances once detected.
-5. **Done** — shows the `API_KEY` (needed for first AgentControl app
-   sign-in), pairing status, and links to the operator portal +
-   AgentControl app download.
-
-## What the installer does NOT do
-
-- **No Tailscale install.** The bridge subscribes outbound to the
-  cloud-supabase Realtime, so the core autonomous-coding flow works
-  without inbound networking. Tailscale is only needed for advanced
-  features (voice streaming, file browser, live chat with the bridge)
-  and remains a manual operator install.
-
-## Build (dev)
-
-```bash
-pnpm install
-pnpm tauri dev
-```
-
-## Releases
-
-Tag-push (`vX.Y.Z`) triggers `.github/workflows/build-release.yml` →
-GH-hosted Windows/macOS/Linux runners build signed-tomorrow-but-unsigned-
-today bundles and upload them to a GitHub release.
-
-Code-signing wiring (Tauri minisign + Windows EV + Apple notarization)
-lands in Phase 55.2.4 after the wizard logic stabilises.
-
-## License
-
-MIT — see `LICENSE`.
+This repo's source is retained for reference. If you want to
+understand WHY the tray's onboarding looks the way it does, the
+debug history here (`CHANGELOG.md` Phase 55.2.0 → 55.2.14) is
+where it all surfaced.
