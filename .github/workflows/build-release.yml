@@ -48,10 +48,14 @@ jobs:
             label: macos
             rust-target: aarch64-apple-darwin
             args: '--target aarch64-apple-darwin'
+          # Windows: build the raw .exe (no NSIS bundling). The post-step
+          # below uploads it as `*_x64-portable.exe` so users double-click
+          # and the wizard runs immediately — no "install the installer"
+          # round-trip through Programs+Start Menu.
           - platform: windows-latest
             label: windows
             rust-target: x86_64-pc-windows-msvc
-            args: ''
+            args: '--no-bundle'
 
     runs-on: ${{ matrix.platform }}
 
@@ -124,11 +128,31 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'AgentControl Bridge Installer ${{ github.ref_name }}'
           releaseBody: |
-            Phase 55.2.0 scaffold release — wizard logic ships in Phase 55.2.1.
+            See CHANGELOG.md for details. Unsigned artifacts; code-signing
+            wiring lands in Phase 55.2.4.
 
-            Unsigned artifacts; code-signing wiring lands in Phase 55.2.4.
-
-            See CHANGELOG.md for details.
+            **Windows users:** download `AgentControl-Bridge-Installer.exe`.
+            It is portable — double-click and the wizard runs immediately,
+            no install step. Requires the Microsoft Edge WebView2 runtime,
+            which is built into Windows 11 and shipped via Edge on Windows
+            10 (most systems already have it).
           releaseDraft: false
           prerelease: true
           args: ${{ matrix.args }}
+
+      # Portable Windows .exe: tauri-action only ships the NSIS bundle (which
+      # writes itself to Program Files first). Some users want the raw exe
+      # they can double-click and have the wizard run immediately — no
+      # install step, no Start Menu shortcut to clean up afterwards. Upload
+      # the raw Tauri build output as a release asset alongside the bundle.
+      - name: Upload portable Windows .exe
+        if: matrix.platform == 'windows-latest' && github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SRC="src-tauri/target/release/agentcontrol-bridge-installer.exe"
+          DEST="AgentControl-Bridge-Installer_${VERSION}_x64-portable.exe"
+          cp "$SRC" "$DEST"
+          gh release upload "$GITHUB_REF_NAME" "$DEST" --clobber

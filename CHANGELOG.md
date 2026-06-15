@@ -9,6 +9,15 @@ and the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 
+- Phase 55.2.13 — Windows ships as a single **portable .exe** instead of
+  an NSIS installer + Start Menu round-trip. Double-click the
+  `_x64-portable.exe` and the wizard starts immediately; nothing is
+  written to Programs Files, nothing needs uninstalling afterwards.
+  Drops the `nsis` bundle target + adds `--no-bundle` to the Windows
+  matrix arg + a manual `gh release upload` step that ships the raw
+  `target/release/agentcontrol-bridge-installer.exe`. macOS still ships
+  as a `.dmg` (idiomatic drag-to-Applications) and Linux as
+  `.deb` + portable `.AppImage`.
 - Phase 55.2.12 — pair-bridge URL switched from the deprecated
   operator-portal `/pair-installer` route to the agentcontrol-app web
   build at `/app/pair-bridge`. The Caddy route + the page itself now
